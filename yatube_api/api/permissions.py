@@ -1,16 +1,8 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
-# class ReadOnly(BasePermission):
-#     message = 'Необходима авторизация.'
-#
-#     def has_permission(self, request, view):
-#         if request.method in SAFE_METHODS:
-#             return True
-#         return False
-
 
 class IsAuthorOrReadOnly(BasePermission):
-    """Allows access only to author user."""
+    """Allows access (change/delete) only to author user."""
     message = ''
 
     def has_permission(self, request, view):
