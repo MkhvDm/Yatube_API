@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from django.contrib.auth import get_user_model
 
 
 from posts.models import Comment, Post, Group, Follow
+
+User = get_user_model()
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -33,8 +36,12 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     user = SlugRelatedField(slug_field='username', read_only=True)
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    following = SlugRelatedField(slug_field='username',
+                                 read_only=False,
+                                 queryset=User.objects.all())
+
+    # def validate(self, attrs
 
     class Meta:
         model = Follow
-        fields = '__all__'
+        fields = ('user', 'following', )
