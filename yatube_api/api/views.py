@@ -1,26 +1,24 @@
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from django.shortcuts import get_object_or_404
+from posts.models import Comment, Follow, Group, Post
+from rest_framework import filters
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.viewsets import (GenericViewSet, ModelViewSet,
+                                     ReadOnlyModelViewSet)
 
-from posts.models import Post, Group, Comment, Follow
 from .permissions import IsAuthorOrReadOnly
-
-from .serializers import (CommentSerializer, PostSerializer,
-                          GroupSerializer, FollowSerializer)
+from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
+                          PostSerializer)
 
 User = get_user_model()
 
 
 class PostViewSet(ModelViewSet):
+    """Публикации пользователей."""
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # permission_classes = (AllowAny, )
     permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
@@ -29,12 +27,14 @@ class PostViewSet(ModelViewSet):
 
 
 class GroupViewSet(ReadOnlyModelViewSet):
+    """Группы публикаций по теме."""
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (AllowAny, )
 
 
 class CommentViewSet(ModelViewSet):
+    """Комментарии к публикации."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly, )
 
@@ -49,35 +49,17 @@ class CommentViewSet(ModelViewSet):
                         post=post)
 
 
-class FollowViewSet(ModelViewSet):
+class FollowViewSet(GenericViewSet, CreateModelMixin, ListModelMixin):
+    """Подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('following__username', )
 
     def get_queryset(self):
         user = self.request.user
-        # new_queryset = Follow.objects.filter(user=user.pk)
         new_queryset = user.follower.all()
         return new_queryset
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        print('\nser data:', serializer.initial_data)
-        following = get_object_or_404(
-            User, username=serializer.initial_data.get('following')
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
-
     def perform_create(self, serializer):
-        # TODO check existing follow & not user
         serializer.save(user=self.request.user)
-
-
-# class FollowViewSet(GenericViewSet, ListModelMixin, CreateModelMixin):
-#     serializer_class = FollowSerializer
-#     permission_classes = (IsAuthenticated,)
-
-

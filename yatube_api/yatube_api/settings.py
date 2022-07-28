@@ -90,19 +90,14 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        # 'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    # 'DEFAULT_PAGINATION_CLASS':
-    #     'rest_framework.pagination.LimitOffsetPagination',
-    # 'PAGE_SIZE': 10,
 }
 
-
 SIMPLE_JWT = {
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+   'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
    'AUTH_HEADER_TYPES': ('Bearer',),
 }
