@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from posts.models import Group, Post
 from rest_framework import filters
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import (GenericViewSet, ModelViewSet,
                                      ReadOnlyModelViewSet)
+
+from posts.models import Group, Post
 
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
@@ -49,12 +50,12 @@ class CommentViewSet(ModelViewSet):
                         post=post)
 
 
-class FollowViewSet(GenericViewSet, CreateModelMixin, ListModelMixin):
+class FollowViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     """Подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated, )
     filter_backends = (filters.SearchFilter, )
-    search_fields = ('following__username', )
+    search_fields = ('following__username', 'user__username', )
 
     def get_queryset(self):
         user = self.request.user
